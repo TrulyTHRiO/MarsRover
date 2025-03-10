@@ -5,9 +5,13 @@ class Plateau:
     rovers = []
 
     def CreateNewRover(self):
-        info = input().split(" ")
-        rover = self.InitialiseRover(info[0], info[1], info[2])
-        return rover
+        info = input("Please enter the rover's starting coordinates followed by the initial direction it is facing.\n").split(" ")
+        try:
+            if len(info) > 3: raise Exception()
+            rover = self.InitialiseRover(info[0], info[1], info[2])
+            return rover
+        except:
+            return self.CreateNewRover()
 
     def InitialiseRover(self, x, y, cardinal):
         rover = Rover(x, y, cardinal, self)
@@ -18,16 +22,19 @@ class Plateau:
 
 class Rover:
     def __init__(self, x, y, cardinal, plateau):
-        self.coordinates = [int(x),int(y)]
-        self.cardinal = ["N", "E", "S", "W"].index(cardinal)
-        self.plateau = plateau
+        try:
+            self.plateau = plateau
+            self.coordinates = [int(x),int(y)]
+            self.cardinal = ["N", "E", "S", "W"].index(cardinal.upper())
+        except:
+            self.Reset("Please enter the rover's starting coordinates followed by the initial direction it is facing.", False)
         
     def UpdateCoordinates(self):
-        movement = input().split("M")
+        movement = input().upper().split("M")
         for instruction in movement[0:-1]:
             self.Rotate(instruction)
             if not self.Move():
-                self.Reset("The rover leaves the plateau. Please enter a new starting position and movement command.")
+                self.Reset("The rover leaves the plateau. Please enter a new starting position and movement command.", True)
                 return
         self.Rotate(movement[-1])
 
@@ -58,18 +65,29 @@ class Rover:
             return False
         return True
     
-    def Reset(self, error):
+    def Reset(self, error, updateCoords):
         info = input(error+"\n").split(" ")
-        self.__init__(info[0], info[1], info[2], self.plateau)
-        self.UpdateCoordinates()
+        try:
+            if len(info) > 3: raise Exception()
+            self.__init__(info[0], info[1], info[2], self.plateau)
+            if updateCoords == True:
+                self.UpdateCoordinates()
+            return self
+        except:
+            return self.Reset(error, updateCoords)
 
 
 
-def InitialisePlateau():
-    info = input().split(" ")
-    return Plateau(info[0], info[1])
+def InitialisePlateau(out):
+    info = input(out+"\n").split(" ")
+    try:
+        if len(info) > 2: raise Exception()
+        return Plateau(info[0], info[1])
+    except:
+        return InitialisePlateau("Plateau coordinates must be 2 integers.")
 
-plateau = InitialisePlateau()
+
+plateau = InitialisePlateau("Please enter coordinates for the 2nd point of the plateau.")
 for i in range(2):
     plateau.CreateNewRover().UpdateCoordinates()
 
